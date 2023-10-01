@@ -9,5 +9,5 @@ func Init() {
 
 	initializePersonRoutes(router)
 
-	router.Run(":9999")
+	router.Run(":8080")
 }

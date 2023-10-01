@@ -1,33 +1,16 @@
 package router
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	"github.com/xXHachimanXx/rinha_de_backend/internal/handler"
 )
 
 func initializePersonRoutes(router *gin.Engine) {
 	api := router.Group("")
 	{
-		api.POST("pessoas", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{
-				"message": "POST pessoas",
-			})
-		})
-		api.GET("pessoas/:id", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{
-				"message": "pessoasbyid",
-			})
-		})
-		api.GET("pessoas", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{
-				"message": "pessoas by term",
-			})
-		})
-		api.GET("contagem-pessoas", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{
-				"message": "contagem-pessoas",
-			})
-		})
+		api.POST("pessoas", handler.CreatePersonHandler)
+		api.GET("pessoas/:id", handler.FindPersonById)
+		api.GET("pessoas", handler.FindPersonByTerm)
+		api.GET("contagem-pessoas", handler.GetPersonCounter)
 	}
 }

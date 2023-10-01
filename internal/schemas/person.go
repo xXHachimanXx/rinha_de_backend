@@ -1,4 +1,4 @@
-package entity
+package schemas
 
 import uuid "github.com/satori/go.uuid"
 
