@@ -69,9 +69,16 @@ func CreatePersonHandler(ctx *gin.Context) {
 }
 
 func FindPersonById(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "pessoasbyid",
-	})
+	var person schemas.Person
+
+	personID := ctx.Param("id")
+
+	if result := db.Where("id = ?", personID).First(&person); result.Error != nil {
+		logger.Errorf("Find person in database error: %v", result.Error)
+		sendError(ctx, http.StatusInternalServerError, result.Error.Error())
+		return
+	}
+	sendSuccess(ctx, "create-person", &person)
 }
 
 func FindPersonByTerm(ctx *gin.Context) {
