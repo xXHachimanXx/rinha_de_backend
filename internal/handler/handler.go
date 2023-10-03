@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 	"github.com/xXHachimanXx/rinha_de_backend/config"
 	"github.com/xXHachimanXx/rinha_de_backend/internal/schemas"
 	"gorm.io/gorm"
@@ -39,13 +40,15 @@ func sendSuccess(ctx *gin.Context, op string, data interface{}) {
 }
 
 func CreatePersonHandler(ctx *gin.Context) {
-	createPersonRequest := CreatePersonRequest{}
+	var createPersonRequest CreatePersonRequest
 
-	ctx.BindJSON(&createPersonRequest)
+	if err := ctx.ShouldBindJSON(&createPersonRequest); err != nil {
+		sendError(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
 
 	if err := createPersonRequest.Validate(); err != nil {
 		logger.Errorf("Create person handler error: %v", err)
-		sendError(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -53,7 +56,7 @@ func CreatePersonHandler(ctx *gin.Context) {
 		createPersonRequest.Nickname,
 		createPersonRequest.Name,
 		createPersonRequest.Birthdate,
-		fmt.Sprintf("%v", createPersonRequest.Stack),
+		createPersonRequest.Stack,
 	)
 
 	if err := db.Create(&person).Error; err != nil {

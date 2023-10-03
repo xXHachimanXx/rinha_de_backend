@@ -1,13 +1,16 @@
 package schemas
 
-import uuid "github.com/satori/go.uuid"
+import (
+	"github.com/lib/pq"
+	uuid "github.com/satori/go.uuid"
+)
 
 type Person struct {
-	ID        string `gorm:"primaryKey"`
-	Nickname  string
-	Name      string
-	Birthdate string
-	Stack     string `gorm:"type:text"`
+	ID        string         `gorm:"type:uuid;primaryKey"`
+	Nickname  string         `gorm:"not null"`
+	Name      string         `gorm:"not null"`
+	Birthdate string         `gorm:"not null"`
+	Stack     pq.StringArray `gorm:"type:text[]"`
 }
 
 func NewPerson() *Person {
@@ -18,12 +21,12 @@ func NewPerson() *Person {
 	return &person
 }
 
-func BuildPerson(nickname string, name string, birthdate string, stack string) *Person {
+func BuildPerson(nickname string, name string, birthdate string, stack []string) *Person {
 	return &Person{
 		ID:        uuid.NewV4().String(),
 		Nickname:  nickname,
 		Name:      name,
 		Birthdate: birthdate,
-		Stack:     stack,
+		Stack:     pq.StringArray(stack),
 	}
 }
