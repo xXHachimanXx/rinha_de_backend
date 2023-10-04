@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
@@ -31,12 +31,9 @@ func sendError(ctx *gin.Context, code int, msg string) {
 	})
 }
 
-func sendSuccess(ctx *gin.Context, op string, data interface{}) {
+func sendSuccess(ctx *gin.Context, data interface{}) {
 	ctx.Header("Content-type", "application/json")
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": fmt.Sprintf("operation from handler: %s successfull", op),
-		"data":    data,
-	})
+	ctx.JSON(http.StatusOK, data)
 }
 
 func CreatePersonHandler(ctx *gin.Context) {
@@ -52,10 +49,18 @@ func CreatePersonHandler(ctx *gin.Context) {
 		return
 	}
 
+	// Formato da string de data
+	dateFormat := "2006-01-02"
+	birthdateParsed, err := time.Parse(dateFormat, createPersonRequest.Birthdate)
+	if err != nil {
+		logger.Errorf("Create person handler error: %v", err)
+		return
+	}
+
 	person := schemas.BuildPerson(
 		createPersonRequest.Nickname,
 		createPersonRequest.Name,
-		createPersonRequest.Birthdate,
+		birthdateParsed,
 		createPersonRequest.Stack,
 	)
 
@@ -65,7 +70,7 @@ func CreatePersonHandler(ctx *gin.Context) {
 		return
 	}
 
-	sendSuccess(ctx, "create-person", person)
+	sendSuccess(ctx, person)
 }
 
 func FindPersonById(ctx *gin.Context) {
@@ -78,7 +83,7 @@ func FindPersonById(ctx *gin.Context) {
 		sendError(ctx, http.StatusInternalServerError, result.Error.Error())
 		return
 	}
-	sendSuccess(ctx, "create-person", &person)
+	sendSuccess(ctx, &person)
 }
 
 func FindPersonByTerm(ctx *gin.Context) {
@@ -88,7 +93,9 @@ func FindPersonByTerm(ctx *gin.Context) {
 }
 
 func GetPersonCounter(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "contagem-pessoas",
-	})
+	var count int64
+
+	db.Table("people").Count(&count)
+
+	sendSuccess(ctx, &count)
 }
