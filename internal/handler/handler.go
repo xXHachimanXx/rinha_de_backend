@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,6 @@ var (
 
 func InitializeHandler() {
 	db = config.GetPostgres()
-	db.AutoMigrate(&schemas.Person{})
 	db.Model(&schemas.Person{})
 	logger = config.GetLogger("Handler")
 }
@@ -57,6 +57,8 @@ func CreatePersonHandler(ctx *gin.Context) {
 		return
 	}
 
+	stringStack := strings.Join(createPersonRequest.Stack, ", ")
+
 	person := schemas.BuildPerson(
 		createPersonRequest.Nickname,
 		createPersonRequest.Name,
@@ -87,15 +89,23 @@ func FindPersonById(ctx *gin.Context) {
 }
 
 func FindPersonByTerm(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "pessoas by term",
-	})
+	var person schemas.Person
+
+	term := ctx.Query("t")
+
+	if result := db.Table("person").Where("searchable ILIKE ?", term).Find(&person); result.Error != nil {
+		logger.Errorf("Find person by term in database error: %v", result.Error)
+		sendError(ctx, http.StatusInternalServerError, result.Error.Error())
+		return
+	}
+
+	sendSuccess(ctx, &person)
 }
 
 func GetPersonCounter(ctx *gin.Context) {
 	var count int64
 
-	db.Table("people").Count(&count)
+	db.Table("person").Count(&count)
 
 	sendSuccess(ctx, &count)
 }

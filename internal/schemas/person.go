@@ -15,6 +15,10 @@ type Person struct {
 	Stack     pq.StringArray `gorm:"type:text[]"`
 }
 
+func (Person) TableName() string {
+	return "person"
+}
+
 func NewPerson() *Person {
 	person := Person{
 		ID: uuid.NewV4().String(),
@@ -23,7 +27,7 @@ func NewPerson() *Person {
 	return &person
 }
 
-func BuildPerson(nickname string, name string, birthdate time.Time, stack []string) *Person {
+func BuildPersonRequest(nickname string, name string, birthdate time.Time, stack []string) *Person {
 
 	return &Person{
 		ID:        uuid.NewV4().String(),
